@@ -1,0 +1,393 @@
+local TweenService = game:GetService("TweenService")
+local CoreGui = game:GetService("CoreGui")
+local Players = game:GetService("Players")
+
+local player = Players.LocalPlayer
+local playerGui = player:FindFirstChild("PlayerGui") or CoreGui
+
+-- Configuration & Keys
+local CORRECT_KEY = "ZeroPointHsjsKeyJakosjwowLappqiwhwJanwkiwejob"
+local LINK_GET_KEY = "https://link4m.net/8rCLR"
+local SAVE_FILE_NAME = "ZeroPoint_Session.json"
+local EXPIRE_TIME = 24 * 60 * 60 -- 24 hours in seconds
+
+-- Check if user already verified within 24 hours
+local function CheckSavedKey()
+    if writefile and readfile and isfile and isfile(SAVE_FILE_NAME) then
+        local success, data = pcall(function()
+            local HttpService = game:GetService("HttpService")
+            return HttpService:JSONDecode(readfile(SAVE_FILE_NAME))
+        end)
+        if success and data and data.timestamp and data.key == CORRECT_KEY then
+            if os.time() - data.timestamp < EXPIRE_TIME then
+                return true
+            end
+        end
+    end
+    return false
+end
+
+-- Save key session silently
+local function SaveKeySession()
+    if writefile then
+        pcall(function()
+            local HttpService = game:GetService("HttpService")
+            local data = {
+                key = CORRECT_KEY,
+                timestamp = os.time()
+            }
+            writefile(SAVE_FILE_NAME, HttpService:JSONEncode(data))
+        end)
+    end
+end
+
+-- If session is valid, load script directly without showing UI
+if CheckSavedKey() then
+    local success, err = pcall(function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/JaxRol/ZeroPoint/refs/heads/main/KeySystem"))()
+    end)
+    if not success then
+        warn("Error loading Zero Point script: " + tostring(err))
+    end
+    return
+end
+
+-- Clean up existing GUI if any
+if playerGui:FindFirstChild("ZeroPointKeySystem") then
+    playerGui.ZeroPointKeySystem:Destroy()
+end
+
+-- Color Palette (Dark & Neon Pink Theme)
+local COLORS = {
+    Background = Color3.fromRGB(16, 16, 20),
+    Secondary = Color3.fromRGB(24, 24, 30),
+    PinkMain = Color3.fromRGB(255, 45, 135),
+    PinkDark = Color3.fromRGB(180, 25, 95),
+    PinkGlow = Color3.fromRGB(255, 105, 180),
+    TextWhite = Color3.fromRGB(245, 245, 250),
+    TextMuted = Color3.fromRGB(150, 150, 165),
+    ErrorRed = Color3.fromRGB(255, 75, 95),
+    ErrorBg = Color3.fromRGB(45, 20, 28),
+    SuccessGreen = Color3.fromRGB(50, 230, 130),
+    SuccessBg = Color3.fromRGB(20, 42, 30)
+}
+
+-- Create ScreenGui
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "ZeroPointKeySystem"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = playerGui
+
+-- Main Container Frame
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Size = UDim2.new(0, 380, 0, 240)
+MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+MainFrame.BackgroundColor3 = COLORS.Background
+MainFrame.BorderSizePixel = 0
+MainFrame.ClipsDescendants = true
+MainFrame.Parent = ScreenGui
+
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 14)
+MainCorner.Parent = MainFrame
+
+-- Neon Pink Border Stroke
+local MainStroke = Instance.new("UIStroke")
+MainStroke.Color = COLORS.PinkMain
+MainStroke.Thickness = 1.8
+MainStroke.Transparency = 0.2
+MainStroke.Parent = MainFrame
+
+local StrokeGradient = Instance.new("UIGradient")
+StrokeGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, COLORS.PinkMain),
+    ColorSequenceKeypoint.new(0.5, COLORS.Background),
+    ColorSequenceKeypoint.new(1, COLORS.PinkGlow)
+})
+StrokeGradient.Rotation = 45
+StrokeGradient.Parent = MainStroke
+
+-- Top Accent Bar
+local TopAccent = Instance.new("Frame")
+TopAccent.Size = UDim2.new(0.4, 0, 0, 3)
+TopAccent.Position = UDim2.new(0.3, 0, 0, 0)
+TopAccent.BackgroundColor3 = COLORS.PinkMain
+TopAccent.BorderSizePixel = 0
+TopAccent.Parent = MainFrame
+
+local TopAccentCorner = Instance.new("UICorner")
+TopAccentCorner.CornerRadius = UDim.new(1, 0)
+TopAccentCorner.Parent = TopAccent
+
+-- Title: ZERO POINT
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, 0, 0, 42)
+Title.Position = UDim2.new(0, 0, 0, 14)
+Title.BackgroundTransparency = 1
+Title.Text = "ZERO POINT"
+Title.TextColor3 = COLORS.TextWhite
+Title.TextSize = 26
+Title.Font = Enum.Font.GothamBlack
+Title.Parent = MainFrame
+
+local TitleGradient = Instance.new("UIGradient")
+TitleGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, COLORS.TextWhite),
+    ColorSequenceKeypoint.new(1, COLORS.PinkGlow)
+})
+TitleGradient.Rotation = 90
+TitleGradient.Parent = Title
+
+-- Subtitle
+local SubTitle = Instance.new("TextLabel")
+SubTitle.Size = UDim2.new(1, 0, 0, 18)
+SubTitle.Position = UDim2.new(0, 0, 0, 50)
+SubTitle.BackgroundTransparency = 1
+SubTitle.Text = "AUTHENTICATION SYSTEM"
+SubTitle.TextColor3 = COLORS.PinkMain
+SubTitle.TextSize = 11
+SubTitle.Font = Enum.Font.GothamBold
+SubTitle.Parent = MainFrame
+
+-- Input Field Container
+local InputContainer = Instance.new("Frame")
+InputContainer.Size = UDim2.new(0.86, 0, 0, 42)
+InputContainer.Position = UDim2.new(0.07, 0, 0, 82)
+InputContainer.BackgroundColor3 = COLORS.Secondary
+InputContainer.BorderSizePixel = 0
+InputContainer.Parent = MainFrame
+
+local InputCorner = Instance.new("UICorner")
+InputCorner.CornerRadius = UDim.new(0, 9)
+InputCorner.Parent = InputContainer
+
+local InputStroke = Instance.new("UIStroke")
+InputStroke.Color = Color3.fromRGB(50, 50, 62)
+InputStroke.Thickness = 1.2
+InputStroke.Parent = InputContainer
+
+local TextBox = Instance.new("TextBox")
+TextBox.Size = UDim2.new(1, -20, 1, 0)
+TextBox.Position = UDim2.new(0, 10, 0, 0)
+TextBox.BackgroundTransparency = 1
+TextBox.PlaceholderText = "Enter your key here..."
+TextBox.PlaceholderColor3 = COLORS.TextMuted
+TextBox.Text = ""
+TextBox.TextColor3 = COLORS.TextWhite
+TextBox.TextSize = 14
+TextBox.Font = Enum.Font.GothamMedium
+TextBox.ClearTextOnFocus = false
+TextBox.Parent = InputContainer
+
+TextBox.Focused:Connect(function()
+    TweenService:Create(InputStroke, TweenInfo.new(0.25), {Color = COLORS.PinkMain, Thickness = 1.6}):Play()
+end)
+
+TextBox.FocusLost:Connect(function()
+    TweenService:Create(InputStroke, TweenInfo.new(0.25), {Color = Color3.fromRGB(50, 50, 62), Thickness = 1.2}):Play()
+end)
+
+-- Submit Button (Verify Key)
+local SubmitBtn = Instance.new("TextButton")
+SubmitBtn.Size = UDim2.new(0.41, 0, 0, 38)
+SubmitBtn.Position = UDim2.new(0.07, 0, 0, 138)
+SubmitBtn.BackgroundColor3 = COLORS.PinkMain
+SubmitBtn.Text = "CHECK KEY"
+SubmitBtn.TextColor3 = COLORS.TextWhite
+SubmitBtn.TextSize = 13
+SubmitBtn.Font = Enum.Font.GothamBold
+SubmitBtn.AutoButtonColor = false
+SubmitBtn.Parent = MainFrame
+
+local SubmitCorner = Instance.new("UICorner")
+SubmitCorner.CornerRadius = UDim.new(0, 9)
+SubmitCorner.Parent = SubmitBtn
+
+-- Get Key Button
+local GetKeyBtn = Instance.new("TextButton")
+GetKeyBtn.Size = UDim2.new(0.41, 0, 0, 38)
+GetKeyBtn.Position = UDim2.new(0.52, 0, 0, 138)
+GetKeyBtn.BackgroundColor3 = COLORS.Secondary
+GetKeyBtn.Text = "GET KEY"
+GetKeyBtn.TextColor3 = COLORS.PinkGlow
+GetKeyBtn.TextSize = 13
+GetKeyBtn.Font = Enum.Font.GothamBold
+GetKeyBtn.AutoButtonColor = false
+GetKeyBtn.Parent = MainFrame
+
+local GetKeyCorner = Instance.new("UICorner")
+GetKeyCorner.CornerRadius = UDim.new(0, 9)
+GetKeyCorner.Parent = GetKeyBtn
+
+local GetKeyStroke = Instance.new("UIStroke")
+GetKeyStroke.Color = COLORS.PinkMain
+GetKeyStroke.Thickness = 1.2
+GetKeyStroke.Parent = GetKeyBtn
+
+-- ==========================================
+-- MODERN NOTIFICATION STATUS BAR (CARD STYLE)
+-- ==========================================
+local StatusCard = Instance.new("Frame")
+StatusCard.Size = UDim2.new(0.86, 0, 0, 28)
+StatusCard.Position = UDim2.new(0.07, 0, 0, 186)
+StatusCard.BackgroundColor3 = COLORS.Secondary
+StatusCard.BorderSizePixel = 0
+StatusCard.Parent = MainFrame
+
+local StatusCardCorner = Instance.new("UICorner")
+StatusCardCorner.CornerRadius = UDim.new(0, 7)
+StatusCardCorner.Parent = StatusCard
+
+local StatusCardStroke = Instance.new("UIStroke")
+StatusCardStroke.Color = Color3.fromRGB(45, 45, 58)
+StatusCardStroke.Thickness = 1
+StatusCardStroke.Parent = StatusCard
+
+local StatusLabel = Instance.new("TextLabel")
+StatusLabel.Size = UDim2.new(1, -16, 1, 0)
+StatusLabel.Position = UDim2.new(0, 8, 0, 0)
+StatusLabel.BackgroundTransparency = 1
+StatusLabel.Text = "Please enter your key to continue"
+StatusLabel.TextColor3 = COLORS.TextMuted
+StatusLabel.TextSize = 12
+StatusLabel.Font = Enum.Font.GothamMedium
+StatusLabel.Parent = StatusCard
+
+-- ==========================================
+-- ANIMATIONS & INTERACTIONS
+-- ==========================================
+
+-- Smooth Open Pop-in
+MainFrame.Size = UDim2.new(0, 340, 0, 200)
+MainFrame.BackgroundTransparency = 1
+TweenService:Create(MainFrame, TweenInfo.new(0.45, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+    Size = UDim2.new(0, 380, 0, 240),
+    BackgroundTransparency = 0
+}):Play()
+
+task.spawn(function()
+    local t = 0
+    while ScreenGui and ScreenGui.Parent do
+        local dt = task.wait()
+        t = t + dt
+        StrokeGradient.Rotation = (t * 45) % 360
+    end
+end)
+
+-- Smooth Horizontal Shake for Menu Error
+local isShaking = false
+local function ShakeError()
+    if isShaking then return end
+    isShaking = true
+    
+    local basePos = UDim2.new(0.5, 0, 0.5, 0)
+    local offsets = {-12, 12, -8, 8, -4, 4, 0}
+    for _, offsetX in ipairs(offsets) do
+        local tween = TweenService:Create(
+            MainFrame,
+            TweenInfo.new(0.04, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut),
+            {Position = UDim2.new(0.5, offsetX, 0.5, 0)}
+        )
+        tween:Play()
+        tween.Completed:Wait()
+    end
+    MainFrame.Position = basePos
+    isShaking = false
+end
+
+-- Hover Effects
+local function AddButtonHover(button, normalColor, hoverColor)
+    button.MouseEnter:Connect(function()
+        TweenService:Create(button, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {BackgroundColor3 = hoverColor}):Play()
+    end)
+    button.MouseLeave:Connect(function()
+        TweenService:Create(button, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {BackgroundColor3 = normalColor}):Play()
+    end)
+end
+
+AddButtonHover(SubmitBtn, COLORS.PinkMain, COLORS.PinkDark)
+AddButtonHover(GetKeyBtn, COLORS.Secondary, Color3.fromRGB(38, 28, 38))
+
+-- ==========================================
+-- EVENT HANDLERS
+-- ==========================================
+
+GetKeyBtn.MouseButton1Click:Connect(function()
+    if setclipboard then
+        setclipboard(LINK_GET_KEY)
+        
+        -- Success style for copy link
+        TweenService:Create(StatusCard, TweenInfo.new(0.2), {BackgroundColor3 = COLORS.SuccessBg}):Play()
+        TweenService:Create(StatusCardStroke, TweenInfo.new(0.2), {Color = COLORS.SuccessGreen}):Play()
+        StatusLabel.TextColor3 = COLORS.SuccessGreen
+        StatusLabel.Text = "✓ Key link copied to clipboard!"
+    else
+        TweenService:Create(StatusCard, TweenInfo.new(0.2), {BackgroundColor3 = COLORS.ErrorBg}):Play()
+        TweenService:Create(StatusCardStroke, TweenInfo.new(0.2), {Color = COLORS.ErrorRed}):Play()
+        StatusLabel.TextColor3 = COLORS.ErrorRed
+        StatusLabel.Text = "✕ Executor does not support auto-copy."
+        ShakeError()
+    end
+end)
+
+SubmitBtn.MouseButton1Click:Connect(function()
+    local enteredKey = TextBox.Text
+    
+    if enteredKey == CORRECT_KEY then
+        -- Save key session silently
+        SaveKeySession()
+
+        -- Modern Success State
+        TweenService:Create(StatusCard, TweenInfo.new(0.2), {BackgroundColor3 = COLORS.SuccessBg}):Play()
+        TweenService:Create(StatusCardStroke, TweenInfo.new(0.2), {Color = COLORS.SuccessGreen}):Play()
+        StatusLabel.TextColor3 = COLORS.SuccessGreen
+        StatusLabel.Text = "✓ Key verified! Loading Zero Point..."
+        
+        -- Smooth close animation
+        local closeTween = TweenService:Create(
+            MainFrame,
+            TweenInfo.new(0.35, Enum.EasingStyle.Back, Enum.EasingDirection.In),
+            {Size = UDim2.new(0, 0, 0, 0), BackgroundTransparency = 1}
+        )
+        closeTween:Play()
+        closeTween.Completed:Wait()
+        
+        ScreenGui:Destroy()
+        
+        -- Run original script
+        local success, err = pcall(function()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/JaxRol/ZeroPoint/refs/heads/main/KeySystem"))()
+        end)
+        
+        if not success then
+            warn("Error loading Zero Point script: " + tostring(err))
+        end
+    else
+        -- Modern Error State with Card Highlight & Auto-Clear
+        TweenService:Create(StatusCard, TweenInfo.new(0.15), {BackgroundColor3 = COLORS.ErrorBg}):Play()
+        TweenService:Create(StatusCardStroke, TweenInfo.new(0.15), {Color = COLORS.ErrorRed}):Play()
+        StatusLabel.TextColor3 = COLORS.ErrorRed
+        StatusLabel.Text = "✕ Invalid Key! Please try again."
+        
+        -- Automatically clear the wrong text input
+        TextBox.Text = ""
+        
+        -- Flash input red & shake menu smoothly
+        TweenService:Create(InputStroke, TweenInfo.new(0.15), {Color = COLORS.ErrorRed}):Play()
+        ShakeError()
+        
+        task.delay(1.2, function()
+            if StatusCard and StatusCardStroke then
+                TweenService:Create(StatusCard, TweenInfo.new(0.4), {BackgroundColor3 = COLORS.Secondary}):Play()
+                TweenService:Create(StatusCardStroke, TweenInfo.new(0.4), {Color = Color3.fromRGB(45, 45, 58)}):Play()
+                TweenService:Create(StatusLabel, TweenInfo.new(0.4), {TextColor3 = COLORS.TextMuted}):Play()
+                StatusLabel.Text = "Please enter your key to continue"
+            end
+            if InputStroke then
+                TweenService:Create(InputStroke, TweenInfo.new(0.3), {Color = Color3.fromRGB(50, 50, 62)}):Play()
+            end
+        end)
+    end
+end)
